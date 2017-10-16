@@ -1,0 +1,15 @@
+ ____                                 _            
+|  _ \  ___ _ __ ___ _ __   ___  __ _| |_ ___ _ __ 
+| | | |/ _ \ '__/ _ \ '_ \ / _ \/ _` | __/ _ \ '__|
+| |_| |  __/ | |  __/ |_) |  __/ (_| | ||  __/ |   
+|____/ \___|_|  \___| .__/ \___|\__,_|\__\___|_|   
+                    |_|                            
+
+Finds and prints parts of the text with repeated words. 
+This is useful in storywriting.
+
+The program does not work on the whole words, which means it can find the same word in different varietes.
+
+„Plazma plazmował plazmową plazmatyczność.”
+Will marks all of those words as duplicates.
+

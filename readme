@@ -5,11 +5,16 @@
 |____/ \___|_|  \___| .__/ \___|\__,_|\__\___|_|   
                     |_|                            
 
-Finds and prints parts of the text with repeated words. 
-This is useful in storywriting.
+Finds and prints parts of the text with repeated words in gadzillion colours.
+Full support for Unicode charset.
+This is really useful in storywriting.
 
 The program does not work on the whole words, which means it can find the same word in different varietes.
-
 "Plazma plazmował plazmową plazmatyczność."
-Will mark all of those words as duplicates.
+Will mark all of these words as duplicates.
+"Responsible irresponsibility"
+Will mark parts of those too.
 
+You will need a terminal which understands ANSI escape codes.
+Best results are on modern terminals supporting 24-bit colours, but dumb ones are also supported.
+Tested under: Konsole, Xterm, Terminator

@@ -8,15 +8,54 @@
 #include <locale.h>
 
 #define DEFAULT_WINDOW_SIZE 3
-#define DEFAULT_SCAN_AREA_SIZE 300
+#define DEFAULT_SCAN_AREA_SIZE 700
 
 #define EXIT_ERR_ARGS -1
 #define EXIT_ERR_READ -2
 #define EXIT_ERR_MEM -3
 
-//ANSI escape codes
-#define AEC_BOLDRED L"\033[01;31m"
-#define AEC_DEFAULT L"\033[m"
+///structure holding a color
+typedef struct color
+{
+	unsigned char red;
+	unsigned char green;
+	unsigned char blue;
+} color;
+
+/// Get random color, which is pure 
+color randColor(const int usePureColors)
+{
+	color out;
+	if(usePureColors)
+	{
+		//we change random color to be any value
+		switch(rand() % 3)
+		{
+			case 0:
+				out.red = rand() % 0xff;
+				out.green = (rand() % 2 == 0) ? 0x00 : 0xff;
+				out.blue = 0xff - out.green;
+				break;
+			case 1:
+				out.green = rand() % 0xff;
+				out.red = (rand() % 2 == 0) ? 0x00 : 0xff;
+				out.blue = 0xff - out.red;
+				break;
+			case 2:
+				out.blue = rand() % 0xff;
+				out.green = (rand() % 2 == 0) ? 0x00 : 0xff;
+				out.red = 0xff - out.green;
+				break;
+		}
+	}
+	else
+	{
+		out.red = rand() % 0xff;
+		out.green = rand() % 0xff;
+		out.blue = rand() % 0xff;
+	}
+	return out;
+}
 
 int main(int argc, char** argv)
 {
@@ -25,15 +64,19 @@ int main(int argc, char** argv)
     char* filename = NULL;
     unsigned int windowSize = DEFAULT_WINDOW_SIZE;
     unsigned int scanAreaSize = DEFAULT_SCAN_AREA_SIZE;
+	int usePureColors = 0;
     int printVersion = 0;
+	int dumbTerm = 0;
 
     //read POPT arguments
     struct poptOption optionsArray[] =
     {
-        {"file", 		'f', 	POPT_ARG_STRING, 	&filename, 		0, 	"Name of a file to read", 	"FILENAME"},
-        {"window", 		'w', 	POPT_ARG_INT, 		&windowSize, 	0, 	"Scanning window size", 	"WINDOWSIZE"},
-        {"scan", 		's', 	POPT_ARG_INT, 		&scanAreaSize, 	0, 	"Scanning area",			"SCANAREA"},
-        {"version",		'\0',	POPT_ARG_NONE,		&printVersion,	0,	"Print version and exit",	NULL},
+        {"file", 		'f', 	POPT_ARG_STRING, 	&filename, 			0, 	"Name of a file to read", 	"FILENAME"},
+        {"window", 		'w', 	POPT_ARG_INT, 		&windowSize, 		0, 	"Scanning window size", 	"WINDOWSIZE"},
+        {"scan", 		's', 	POPT_ARG_INT, 		&scanAreaSize, 		0, 	"Scanning area size",			"SCANAREA"},
+		{"purecolors", 	'p', 	POPT_ARG_NONE, 		&usePureColors, 	0, 	"Use only pure colors",	NULL},
+		{"dumbterm", 	'd', 	POPT_ARG_NONE, 		&dumbTerm, 			0, 	"Dumb terminal, use one color",	NULL},
+        {"version",		'\0',	POPT_ARG_NONE,		&printVersion,		0,	"Print version and exit",	NULL},
         POPT_AUTOHELP
         POPT_TABLEEND
     };
@@ -116,7 +159,7 @@ int main(int argc, char** argv)
     }
 
     //allocate buffer of marked characters
-    int* markedChars = calloc(sizeof(bool), charCount);
+    bool* markedChars = calloc(sizeof(bool), charCount);
     if(markedChars == NULL)
     {
         perror("malloc");
@@ -124,9 +167,30 @@ int main(int argc, char** argv)
         goto mainBuffer;
     }
     
+    //allocate buffer of colors
+    color* colorTable = calloc(sizeof(color), charCount);
+	if(colorTable == NULL)
+	{
+		perror("malloc");
+        retVal = EXIT_ERR_MEM;
+        goto markBuffer;
+	}
+	
+	//it is good if the program always generates the same colours
+	srand(0);
+    
     //main loop
     for(size_t beginning = 0; beginning + windowSize < charCount; beginning++)
 	{
+		//randomize color
+		color currColor = randColor(usePureColors);
+		
+		//if color for this letter is set, take it
+		if(markedChars[beginning])
+		{
+			currColor = colorTable[beginning];
+		}
+		
 		//load window
 		bool windowComplete = true;
 		for(size_t windowBeginning = 0; windowBeginning < windowSize; windowBeginning++)
@@ -166,7 +230,9 @@ int main(int argc, char** argv)
 				for(size_t windowBeginning = 0; windowBeginning < windowSize; windowBeginning++)
 				{
 					markedChars[beginning + windowBeginning] = true;
+					colorTable[beginning + windowBeginning] = currColor;
 					markedChars[beginning + scanBeginning + windowBeginning] = true;
+					colorTable[beginning + scanBeginning + windowBeginning] = currColor;
 				}
 			}
 		}
@@ -181,11 +247,19 @@ int main(int argc, char** argv)
 		}
         else
 		{
-			wprintf(AEC_BOLDRED L"%lc" AEC_DEFAULT, buffer[i]);
+			if(!dumbTerm)
+			{
+				wprintf(L"\033[38;2;%hhu;%hhu;%hhum%lc\033[m", colorTable[i].red, colorTable[i].blue, colorTable[i].green, buffer[i]);
+			}
+			else
+			{
+				wprintf(L"\033[1;31m%lc\033[m", buffer[i]);
+			}
 		}
     }
 
-
+    free(colorTable);
+markBuffer:
     free(markedChars);
 mainBuffer:
     free(buffer);

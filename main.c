@@ -59,128 +59,128 @@ color randColor(const int usePureColors)
 
 int main(int argc, char** argv)
 {
-    //execution environment
-    int retVal = 0;
-    char* filename = NULL;
-    unsigned int windowSize = DEFAULT_WINDOW_SIZE;
-    unsigned int scanAreaSize = DEFAULT_SCAN_AREA_SIZE;
+	//execution environment
+	int retVal = 0;
+	char* filename = NULL;
+	unsigned int windowSize = DEFAULT_WINDOW_SIZE;
+	unsigned int scanAreaSize = DEFAULT_SCAN_AREA_SIZE;
 	int usePureColors = 0;
-    int printVersion = 0;
+	int printVersion = 0;
 	int dumbTerm = 0;
 
-    //read POPT arguments
-    struct poptOption optionsArray[] =
-    {
-        {"file", 		'f', 	POPT_ARG_STRING, 	&filename, 			0, 	"Name of a file to read", 	"FILENAME"},
-        {"window", 		'w', 	POPT_ARG_INT, 		&windowSize, 		0, 	"Scanning window size", 	"WINDOWSIZE"},
-        {"scan", 		's', 	POPT_ARG_INT, 		&scanAreaSize, 		0, 	"Scanning area size",			"SCANAREA"},
+	//read POPT arguments
+	struct poptOption optionsArray[] =
+	{
+		{"file", 		'f', 	POPT_ARG_STRING, 	&filename, 			0, 	"Name of a file to read", 	"FILENAME"},
+		{"window", 		'w', 	POPT_ARG_INT, 		&windowSize, 		0, 	"Scanning window size", 	"WINDOWSIZE"},
+		{"scan", 		's', 	POPT_ARG_INT, 		&scanAreaSize, 		0, 	"Scanning area size",			"SCANAREA"},
 		{"purecolors", 	'p', 	POPT_ARG_NONE, 		&usePureColors, 	0, 	"Use only pure colors",	NULL},
 		{"dumbterm", 	'd', 	POPT_ARG_NONE, 		&dumbTerm, 			0, 	"Dumb terminal, use one color",	NULL},
-        {"version",		'\0',	POPT_ARG_NONE,		&printVersion,		0,	"Print version and exit",	NULL},
-        POPT_AUTOHELP
-        POPT_TABLEEND
-    };
+		{"version",		'\0',	POPT_ARG_NONE,		&printVersion,		0,	"Print version and exit",	NULL},
+		POPT_AUTOHELP
+		POPT_TABLEEND
+	};
 
-    //initialise popt context
-    poptContext optCon = poptGetContext(NULL, argc, (const char**) argv, optionsArray, 0);
+	//initialise popt context
+	poptContext optCon = poptGetContext(NULL, argc, (const char**) argv, optionsArray, 0);
 
-    //read options
-    if(poptGetNextOpt(optCon) != -1)
-    {
-        poptPrintHelp(optCon, stderr, 0);
-        retVal = EXIT_ERR_ARGS;
-        goto end;
-    }
-    
-    //read filename
-    char* leftFile = (char*) poptGetArg(optCon);
+	//read options
+	if(poptGetNextOpt(optCon) != -1)
+	{
+		poptPrintHelp(optCon, stderr, 0);
+		retVal = EXIT_ERR_ARGS;
+		goto end;
+	}
+	
+	//read filename
+	char* leftFile = (char*) poptGetArg(optCon);
 	if(leftFile != NULL)
 	{
 		filename = leftFile;
 	}
-    
-    //check if file given
-    if(filename == NULL)
-    {
-        poptPrintHelp(optCon, stderr, 0);
-        retVal = EXIT_ERR_ARGS;
-        goto end;
-    }
-    
-    //free context
+	
+	//check if file given
+	if(filename == NULL)
+	{
+		poptPrintHelp(optCon, stderr, 0);
+		retVal = EXIT_ERR_ARGS;
+		goto end;
+	}
+	
+	//free context
 	poptFreeContext(optCon);
-    
-    //set locale
-    setlocale(LC_ALL, "");
+	
+	//set locale
+	setlocale(LC_ALL, "");
 
-    //open file
-    FILE* file = fopen(filename, "rb");
-    if(file == NULL)
-    {
-        perror(filename);
-        retVal = EXIT_ERR_READ;
-        goto end;
-    }
+	//open file
+	FILE* file = fopen(filename, "rb");
+	if(file == NULL)
+	{
+		perror(filename);
+		retVal = EXIT_ERR_READ;
+		goto end;
+	}
 
-    //find size
-    fseek(file, 0, SEEK_END);
-    size_t filesize = ftell(file);
+	//find size
+	fseek(file, 0, SEEK_END);
+	size_t filesize = ftell(file);
 	//we are using reopen, since fseek behaves weirdly
 	freopen(filename, "rb", file);
-    
+	
 
-    //allocate buffer of the wide char, of the size of the file
-    //since the number of Unicode charaters will never be greater than number of bytes in file
-    wchar_t* buffer = calloc(sizeof(wchar_t), filesize);
-    if(buffer == NULL)
-    {
-        perror("malloc");
-        retVal = EXIT_ERR_MEM;
-        goto file;
-    }
+	//allocate buffer of the wide char, of the size of the file
+	//since the number of Unicode charaters will never be greater than number of bytes in file
+	wchar_t* buffer = calloc(sizeof(wchar_t), filesize);
+	if(buffer == NULL)
+	{
+		perror("malloc");
+		retVal = EXIT_ERR_MEM;
+		goto file;
+	}
 
-    //read contents
-    size_t charCount = 0;
-    while(charCount < filesize)
-    {
-        wint_t readChar = fgetwc(file);
-        if(readChar == WEOF)
-        {
-            if(ferror(file))
-            {
-                perror(filename);
-                retVal = EXIT_ERR_READ;
-                goto mainBuffer;
-            }
-            break;
-        }
-        buffer[charCount] = (wchar_t)readChar;
-        charCount++;
-    }
+	//read contents
+	size_t charCount = 0;
+	while(charCount < filesize)
+	{
+		wint_t readChar = fgetwc(file);
+		if(readChar == WEOF)
+		{
+			if(ferror(file))
+			{
+				perror(filename);
+				retVal = EXIT_ERR_READ;
+				goto mainBuffer;
+			}
+			break;
+		}
+		buffer[charCount] = (wchar_t)readChar;
+		charCount++;
+	}
 
-    //allocate buffer of marked characters
-    bool* markedChars = calloc(sizeof(bool), charCount);
-    if(markedChars == NULL)
-    {
-        perror("malloc");
-        retVal = EXIT_ERR_MEM;
-        goto mainBuffer;
-    }
-    
-    //allocate buffer of colors
-    color* colorTable = calloc(sizeof(color), charCount);
+	//allocate buffer of marked characters
+	bool* markedChars = calloc(sizeof(bool), charCount);
+	if(markedChars == NULL)
+	{
+		perror("malloc");
+		retVal = EXIT_ERR_MEM;
+		goto mainBuffer;
+	}
+	
+	//allocate buffer of colors
+	color* colorTable = calloc(sizeof(color), charCount);
 	if(colorTable == NULL)
 	{
 		perror("malloc");
-        retVal = EXIT_ERR_MEM;
-        goto markBuffer;
+		retVal = EXIT_ERR_MEM;
+		goto markBuffer;
 	}
 	
 	//it is good if the program always generates the same colours
 	srand(0);
-    
-    //main loop
-    for(size_t beginning = 0; beginning + windowSize < charCount; beginning++)
+	
+	//main loop
+	for(size_t beginning = 0; beginning + windowSize < charCount; beginning++)
 	{
 		//randomize color
 		color currColor = randColor(usePureColors);
@@ -238,14 +238,14 @@ int main(int argc, char** argv)
 		}
 	}
 
-    //print file
-    for(size_t i = 0; i < charCount; i++)
-    {
+	//print file
+	for(size_t i = 0; i < charCount; i++)
+	{
 		if(!markedChars[i])
 		{
 			wprintf(L"%lc", buffer[i]);
 		}
-        else
+		else
 		{
 			if(!dumbTerm)
 			{
@@ -256,15 +256,15 @@ int main(int argc, char** argv)
 				wprintf(L"\033[1;31m%lc\033[m", buffer[i]);
 			}
 		}
-    }
+	}
 
-    free(colorTable);
+	free(colorTable);
 markBuffer:
-    free(markedChars);
+	free(markedChars);
 mainBuffer:
-    free(buffer);
+	free(buffer);
 file:
-    fclose(file);
+	fclose(file);
 end:
-    return retVal;
+	return retVal;
 }

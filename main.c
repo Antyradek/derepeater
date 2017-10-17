@@ -3,11 +3,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <wchar.h>
+#include <wctype.h>
 #include <stdbool.h>
 #include <locale.h>
 
 #define DEFAULT_WINDOW_SIZE 3
-#define DEFAULT_SCAN_AREA_SIZE 100
+#define DEFAULT_SCAN_AREA_SIZE 300
 
 #define EXIT_ERR_ARGS -1
 #define EXIT_ERR_READ -2
@@ -21,7 +22,7 @@ int main(int argc, char** argv)
 {
     //execution environment
     int retVal = 0;
-    char* filename = "";
+    char* filename = NULL;
     unsigned int windowSize = DEFAULT_WINDOW_SIZE;
     unsigned int scanAreaSize = DEFAULT_SCAN_AREA_SIZE;
     int printVersion = 0;
@@ -47,14 +48,24 @@ int main(int argc, char** argv)
         retVal = EXIT_ERR_ARGS;
         goto end;
     }
-
+    
+    //read filename
+    char* leftFile = (char*) poptGetArg(optCon);
+	if(leftFile != NULL)
+	{
+		filename = leftFile;
+	}
+    
     //check if file given
-    if(strcmp(filename, "") == 0)
+    if(filename == NULL)
     {
         poptPrintHelp(optCon, stderr, 0);
         retVal = EXIT_ERR_ARGS;
         goto end;
     }
+    
+    //free context
+	poptFreeContext(optCon);
     
     //set locale
     setlocale(LC_ALL, "");
@@ -105,19 +116,61 @@ int main(int argc, char** argv)
     }
 
     //allocate buffer of marked characters
-    bool* markedChars = calloc(sizeof(bool), charCount);
+    int* markedChars = calloc(sizeof(bool), charCount);
     if(markedChars == NULL)
     {
         perror("malloc");
         retVal = EXIT_ERR_MEM;
         goto mainBuffer;
     }
-
-
-    //FIXME Debug
-    markedChars[4] = true;
-	markedChars[5] = true;
-	markedChars[11] = true;
+    
+    //main loop
+    for(size_t beginning = 0; beginning + windowSize < charCount; beginning++)
+	{
+		//load window
+		bool windowComplete = true;
+		for(size_t windowBeginning = 0; windowBeginning < windowSize; windowBeginning++)
+		{
+			if(!iswalnum(buffer[beginning + windowBeginning]))
+			{
+				windowComplete = false;
+				break;
+			}
+		}
+		if(!windowComplete)
+		{
+			continue;
+		}
+		//move window through scan area
+		for(size_t scanBeginning = 1; scanBeginning + windowSize < scanAreaSize && beginning + scanBeginning + windowSize < charCount; scanBeginning++)
+		{
+			//check chars in window
+			bool isMatch = true;
+			for(size_t windowBeginning = 0; windowBeginning < windowSize; windowBeginning++)
+			{
+				wchar_t currChar = buffer[beginning + scanBeginning + windowBeginning];
+				if(!iswalnum(currChar))
+				{
+					isMatch = false;
+					break;
+				}
+				if(towlower(currChar) != towlower(buffer[beginning + windowBeginning]))
+				{
+					isMatch = false;
+					break;
+				}
+			}
+			if(isMatch)
+			{
+				//mark all chars in window and found area
+				for(size_t windowBeginning = 0; windowBeginning < windowSize; windowBeginning++)
+				{
+					markedChars[beginning + windowBeginning] = true;
+					markedChars[beginning + scanBeginning + windowBeginning] = true;
+				}
+			}
+		}
+	}
 
     //print file
     for(size_t i = 0; i < charCount; i++)

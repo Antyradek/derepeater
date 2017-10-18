@@ -1,4 +1,128 @@
 .\" Derepeater manual
 .TH DEREPEATER 1 "October 2017" "version 1.0.0" 
 
-.\ Nothing here for now...
+.SH NAME
+derepeater \- find repeated fragments of words in Unicode text file
+
+.SH SYNOPSIS
+.B derepeater
+.RI [ OPTIONS ]
+.I FILE
+
+.SH DESCRIPTION
+Derepeater reads Unicode text 
+.IR FILE , 
+finds repeated phases and prints everyting, marking found words in various colours.
+Derepeater is not case-sensitive.
+It can be used when creating pre-parsed text, such as LaTeX, HTML, readmes... etc.
+Program reads a shord set of letters of the 
+.I WINDOWSIZE
+length and scans next 
+.I SCANAREA
+letters to find a matching group. Then it marks the window and found letters in the same colour.
+This allows to find words, such as 
+.I replacement
+and
+.I irreplaceable 
+as repeated.
+For best results, use 24-bit colour terminal, such as Konsole, Terminator, or XTerm. You can also use 
+.B \-\-dumbterm
+option to use basic colour.
+See 
+.B EXAMPLES
+section.
+
+.SH OPTIONS
+.TP
+.BR \-f ", " \-\-file = \fIFILE\fR
+Read this file. You can also specify the name as leftover argument.
+
+.TP
+.BR \-w ", " \-\-window = \fIWINDOWSIZE\fR
+Size of a window. Small size allows to find short words, but generates a lot of false positives.
+Bigger size produces more readable result, but can miss some shorter phases. Default is 3.
+
+.TP
+.BR \-s ", " \-\-scan = \fISCANAREA\fR
+Distance between repeated words to still be marked. Usually should be a couple of sentences.
+Default is 700.
+
+.TP
+.BR \-p ", " \-\-purecolors
+Use only pure colours, instead of the default full 24-bit set.
+The pure color is the one, which in HSV model has full saturation and full value.
+Those colours are better visible on light background, but can be more similar between each other.
+
+.TP
+.BR \-d ", " \-\-dumbterm
+Do not use 24-bit set, instead use only bold red.
+The output would be similar to 
+.I grep
+command.
+
+.TP
+.B \-\-version
+Print version and exit.
+
+.TP
+.B \-\-help
+Show usage info and exit.
+
+.SH EXAMPLES
+Let's assume text:
+.nf
+.RS
+.I The pancake-looking Polish naleśniki didn't look much tastier, 
+.I than tasty pancakes Święty Mikołaj did not always polish with glaze.
+.RE
+.fi
+
+When run with 
+.RB ' "derepeater -f thisfile -w 3 -d" "',"
+it will give:
+.RS
+The 
+.IR pancake - look ing 
+.I Polish 
+naleśniki 
+.IR did n't 
+.I look 
+much 
+.IR tast ier, 
+.br
+than
+.IR tast y
+.IR pancake s
+Święty Mikołaj
+.I did
+not always 
+.I polish
+with glaze.
+.RE
+
+Notice, how the words
+.I Polish
+and
+.I polish 
+match. Program ignores the capitalization of the letters.
+
+
+.SH VERSION
+This manual describes 
+.B 1.0
+program version.
+
+.SH BUGS
+Please inform author about any bugs and feature requests.
+
+.SH AUTHOR
+\(co 2017 Radosław Świątkiewicz <antyradek@protonmail.com>
+
+Under 
+.I GPLv3
+license.
+
+
+
+
+

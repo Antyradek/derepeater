@@ -7,6 +7,8 @@
 #include <stdbool.h>
 #include <locale.h>
 
+#define VERSION "1.0.0"
+
 #define DEFAULT_WINDOW_SIZE 3
 #define DEFAULT_SCAN_AREA_SIZE 700
 
@@ -99,6 +101,13 @@ int main(int argc, char** argv)
 		filename = leftFile;
 	}
 	
+	//print version
+	if(printVersion)
+	{
+		fprintf(stderr, "%s %s by Radosław Świątkiewicz\n", argv[0], VERSION);
+		goto end;
+	}
+	
 	//check if file given
 	if(filename == NULL)
 	{
@@ -106,9 +115,6 @@ int main(int argc, char** argv)
 		retVal = EXIT_ERR_ARGS;
 		goto end;
 	}
-	
-	//free context
-	poptFreeContext(optCon);
 	
 	//set locale
 	setlocale(LC_ALL, "");
@@ -126,7 +132,7 @@ int main(int argc, char** argv)
 	fseek(file, 0, SEEK_END);
 	size_t filesize = ftell(file);
 	//we are using reopen, since fseek behaves weirdly
-	freopen(filename, "rb", file);
+	freopen(NULL, "rb", file);
 	
 
 	//allocate buffer of the wide char, of the size of the file
@@ -266,5 +272,7 @@ mainBuffer:
 file:
 	fclose(file);
 end:
+	//free context
+	poptFreeContext(optCon);
 	return retVal;
 }

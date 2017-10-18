@@ -17,4 +17,7 @@ Will mark parts of those too.
 
 You will need a terminal which understands ANSI escape codes.
 Best results are on modern terminals supporting 24-bit colours, but dumb ones are also supported.
-Tested under: Konsole, Xterm, Terminator
+Tested under: Konsole, Xterm, Terminator.
+
+See manual and --help for detailed usage info.
+The simplest way to run it, is to give only filename as argument.

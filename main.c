@@ -9,7 +9,7 @@
 
 #define VERSION "1.0.0"
 
-#define DEFAULT_WINDOW_SIZE 3
+#define DEFAULT_WINDOW_SIZE 4
 #define DEFAULT_SCAN_AREA_SIZE 700
 
 #define EXIT_ERR_ARGS -1
